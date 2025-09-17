@@ -1,0 +1,31 @@
+# YOLOv8 Training Configuration
+# ============================
+
+# Model Configuration
+model_size: 'yolov8n.pt'  # Options: yolov8n.pt, yolov8s.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt
+
+# Training Parameters
+epochs: 50              # Reduced for faster initial training
+batch_size: 16          # Adjust based on GPU memory
+img_size: 640          # Input image size
+learning_rate: 0.01    # Initial learning rate
+patience: 15           # Early stopping patience
+workers: 4             # Number of data loader workers
+device: 'cpu'         # 'auto', 'cpu', 'cuda', or specific GPU ID
+
+# Training Settings
+save_period: 10        # Save model every N epochs
+val_split: 0.2         # Validation split ratio
+augment: true          # Enable data augmentation
+
+# Data Augmentation
+mosaic: 1.0           # Mosaic augmentation probability
+mixup: 0.0            # MixUp augmentation probability
+copy_paste: 0.0       # Copy-paste augmentation probability
+
+# Project Settings
+project: 'rockfall_training'
+name: 'rockfall_yolov8_experiment'  # Will be auto-generated with timestamp
+
+# Export Settings
+export_formats: ['pt', 'onnx']  # Export formats after training

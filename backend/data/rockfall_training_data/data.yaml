@@ -1,0 +1,13 @@
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 1
+names: ['Rock']
+
+roboflow:
+  workspace: rock-pygai
+  project: rockfall-iqtnp
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/rock-pygai/rockfall-iqtnp/dataset/1
