@@ -69,7 +69,8 @@ class RockfallRiskPredictor:
             raise ValueError(f"Target column '{target_column}' not found in dataset")
         
         # Select feature columns (exclude target and non-feature columns)
-        exclude_columns = [target_column, 'timestamp', 'risk_category', 'x', 'y']
+        # Note: risk_score is excluded to prevent data leakage as it's calculated from features
+        exclude_columns = [target_column, 'timestamp', 'risk_category', 'risk_score', 'x', 'y']
         feature_columns = [col for col in df.columns if col not in exclude_columns]
         
         X = df[feature_columns].copy()

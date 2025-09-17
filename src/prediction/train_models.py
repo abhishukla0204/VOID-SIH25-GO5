@@ -7,6 +7,7 @@ This script trains and saves all ML models for rockfall prediction.
 
 import sys
 import os
+import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from ml_models import RockfallRiskPredictor
@@ -20,13 +21,24 @@ def main():
     # Initialize predictor
     predictor = RockfallRiskPredictor(random_state=42)
     
-    # Generate synthetic data
-    print("\n📊 Generating synthetic training data...")
-    config = DataGenerationConfig(n_samples=2000, random_seed=42)
-    generator = SyntheticDataGenerator(config)
-    df = generator.generate_complete_dataset()
-    
-    print(f"✅ Generated {len(df):,} samples with {len(df.columns)} features")
+    # Load existing balanced synthetic data
+    print("\n📊 Loading existing balanced synthetic training data...")
+    try:
+        df = pd.read_csv('outputs/synthetic_training_data.csv')
+        print(f"✅ Loaded {len(df):,} samples with {len(df.columns)} features from existing dataset")
+        
+        # Display data balance
+        risk_dist = df['risk_category'].value_counts().sort_index()
+        print(f"📈 Risk distribution: {dict(risk_dist)}")
+        event_rate = df['rockfall_event'].mean() * 100
+        print(f"💥 Overall rockfall event rate: {event_rate:.1f}%")
+        
+    except FileNotFoundError:
+        print("❌ No existing dataset found. Generating new balanced dataset...")
+        config = DataGenerationConfig(n_samples=5000, random_seed=42)
+        generator = SyntheticDataGenerator(config)
+        df = generator.generate_complete_dataset()
+        print(f"✅ Generated {len(df):,} samples with {len(df.columns)} features")
     
     # Prepare data
     print("\n🔧 Preparing data for training...")

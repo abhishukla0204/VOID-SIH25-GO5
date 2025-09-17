@@ -59,17 +59,17 @@ class SyntheticDataGenerator:
     def _initialize_feature_relationships(self):
         """Define realistic relationships between features and rockfall risk"""
         
-        # Feature importance weights (higher = more important for rockfall risk)
+        # Feature importance weights (more balanced distribution for better training)
         self.feature_weights = {
-            'slope': 0.25,
-            'fracture_density': 0.20,
-            'rainfall': 0.15,
+            'slope': 0.18,
+            'fracture_density': 0.16,
+            'rainfall': 0.14,
             'freeze_thaw_cycles': 0.12,
-            'seismic_activity': 0.10,
-            'instability_index': 0.08,
-            'temperature_variation': 0.05,
-            'wind_speed': 0.03,
-            'roughness': 0.02
+            'seismic_activity': 0.11,
+            'instability_index': 0.10,
+            'temperature_variation': 0.08,
+            'wind_speed': 0.07,
+            'roughness': 0.04
         }
         
         # Risk thresholds for different features
@@ -201,7 +201,7 @@ class SyntheticDataGenerator:
         return pd.DataFrame(env_data)
     
     def calculate_risk_score(self, terrain_df: pd.DataFrame, env_df: pd.DataFrame) -> np.ndarray:
-        """Calculate rockfall risk score based on all features"""
+        """Calculate rockfall risk score based on all features with balanced distribution"""
         
         # Normalize features to 0-1 scale for risk calculation
         normalized_features = {}
@@ -211,8 +211,6 @@ class SyntheticDataGenerator:
         normalized_features['fracture_density'] = terrain_df['fracture_density'] / 10
         normalized_features['instability_index'] = terrain_df['instability_index']
         normalized_features['roughness'] = terrain_df['roughness']
-        normalized_features['slope_variability'] = terrain_df['slope_variability'] / 50
-        normalized_features['wetness_index'] = np.clip(terrain_df['wetness_index'] / 20, 0, 1)
         
         # Environmental features
         normalized_features['rainfall'] = np.clip(env_df['rainfall'] / 200, 0, 1)
@@ -228,51 +226,119 @@ class SyntheticDataGenerator:
             if feature in normalized_features:
                 risk_score += normalized_features[feature] * weight
         
-        # Add interaction effects
-        # Rainfall + slope interaction (very dangerous combination)
+        # Add interaction effects (reduced to prevent over-concentration)
+        # Rainfall + slope interaction
         rainfall_slope_interaction = (normalized_features['rainfall'] * 
-                                    normalized_features['slope'] * 0.15)
+                                    normalized_features['slope'] * 0.08)
         
         # Freeze-thaw + fracture density interaction
         freeze_fracture_interaction = (normalized_features['freeze_thaw_cycles'] * 
-                                     normalized_features['fracture_density'] * 0.10)
+                                     normalized_features['fracture_density'] * 0.06)
         
         # Seismic + instability interaction
         seismic_instability_interaction = (normalized_features['seismic_activity'] * 
-                                         normalized_features['instability_index'] * 0.08)
+                                         normalized_features['instability_index'] * 0.05)
         
         risk_score += (rainfall_slope_interaction + 
                       freeze_fracture_interaction + 
                       seismic_instability_interaction)
         
-        # Add some noise and ensure 0-1 range
-        risk_score += np.random.normal(0, 0.05, len(terrain_df))
+        # Apply power transformation to spread distribution more evenly
+        # This helps create more balanced low/medium/high risk samples
+        risk_score = np.power(risk_score, 0.7)  # Reduces concentration in low values
+        
+        # Add controlled noise to prevent clustering
+        risk_score += np.random.normal(0, 0.08, len(terrain_df))
+        
+        # Ensure 0-1 range
         risk_score = np.clip(risk_score, 0, 1)
         
-        return risk_score
+        # Force balanced distribution by adjusting percentiles
+        n_samples = len(risk_score)
+        low_target = int(n_samples * 0.33)    # 33% low risk
+        medium_target = int(n_samples * 0.34)  # 34% medium risk  
+        high_target = n_samples - low_target - medium_target  # 33% high risk
+        
+        # Sort and redistribute
+        sorted_indices = np.argsort(risk_score)
+        balanced_scores = np.zeros_like(risk_score)
+        
+        # Assign low risk scores (0.0 - 0.3)
+        low_indices = sorted_indices[:low_target]
+        balanced_scores[low_indices] = np.random.uniform(0.0, 0.3, len(low_indices))
+        
+        # Assign medium risk scores (0.3 - 0.7)
+        medium_indices = sorted_indices[low_target:low_target + medium_target]
+        balanced_scores[medium_indices] = np.random.uniform(0.3, 0.7, len(medium_indices))
+        
+        # Assign high risk scores (0.7 - 1.0)
+        high_indices = sorted_indices[low_target + medium_target:]
+        balanced_scores[high_indices] = np.random.uniform(0.7, 1.0, len(high_indices))
+        
+        return balanced_scores
     
-    def generate_rockfall_events(self, risk_scores: np.ndarray, 
-                                threshold: float = 0.7) -> np.ndarray:
-        """Generate binary rockfall events based on risk scores"""
+    def generate_rockfall_events(self, risk_scores: np.ndarray) -> np.ndarray:
+        """Generate binary rockfall events based on risk scores with balanced representation"""
         
-        # Higher risk = higher probability of rockfall
-        # Use sigmoid function to convert risk to probability
-        probability = 1 / (1 + np.exp(-10 * (risk_scores - threshold)))
+        n_samples = len(risk_scores)
+        events = np.zeros(n_samples, dtype=int)
         
-        # Generate events based on probability
-        events = np.random.binomial(1, probability)
+        # Define risk-based probabilities for rockfall events
+        # Low risk (0.0-0.3): 10-20% chance of rockfall
+        # Medium risk (0.3-0.7): 40-60% chance of rockfall  
+        # High risk (0.7-1.0): 70-90% chance of rockfall
         
-        # Ensure we have some events for training
-        if events.sum() < 50:  # Minimum number of positive cases
-            # Force some high-risk cases to be positive
-            high_risk_indices = np.where(risk_scores > 0.6)[0]
-            if len(high_risk_indices) > 0:
-                selected_indices = np.random.choice(
-                    high_risk_indices, 
-                    size=min(100, len(high_risk_indices)), 
-                    replace=False
-                )
-                events[selected_indices] = 1
+        for i, risk_score in enumerate(risk_scores):
+            if risk_score <= 0.3:  # Low risk
+                probability = 0.10 + (risk_score / 0.3) * 0.10  # 10-20%
+            elif risk_score <= 0.7:  # Medium risk
+                probability = 0.20 + ((risk_score - 0.3) / 0.4) * 0.40  # 20-60%
+            else:  # High risk
+                probability = 0.60 + ((risk_score - 0.7) / 0.3) * 0.30  # 60-90%
+            
+            # Add some randomness to avoid perfect correlation
+            probability += np.random.normal(0, 0.05)
+            probability = np.clip(probability, 0.05, 0.95)  # Keep reasonable bounds
+            
+            events[i] = np.random.binomial(1, probability)
+        
+        # Ensure we have enough positive cases for each risk category for training
+        low_risk_mask = risk_scores <= 0.3
+        medium_risk_mask = (risk_scores > 0.3) & (risk_scores <= 0.7)
+        high_risk_mask = risk_scores > 0.7
+        
+        # Ensure minimum number of events in each category
+        min_events_per_category = max(20, int(n_samples * 0.02))  # At least 2% or 20 samples
+        
+        # Check and adjust low risk events
+        low_events = events[low_risk_mask].sum()
+        if low_events < min_events_per_category:
+            low_indices = np.where(low_risk_mask)[0]
+            additional_needed = min_events_per_category - low_events
+            selected = np.random.choice(low_indices, 
+                                      size=min(additional_needed, len(low_indices)), 
+                                      replace=False)
+            events[selected] = 1
+        
+        # Check and adjust medium risk events
+        medium_events = events[medium_risk_mask].sum()
+        if medium_events < min_events_per_category:
+            medium_indices = np.where(medium_risk_mask)[0]
+            additional_needed = min_events_per_category - medium_events
+            selected = np.random.choice(medium_indices, 
+                                      size=min(additional_needed, len(medium_indices)), 
+                                      replace=False)
+            events[selected] = 1
+        
+        # Check and adjust high risk events
+        high_events = events[high_risk_mask].sum()
+        if high_events < min_events_per_category:
+            high_indices = np.where(high_risk_mask)[0]
+            additional_needed = min_events_per_category - high_events
+            selected = np.random.choice(high_indices, 
+                                      size=min(additional_needed, len(high_indices)), 
+                                      replace=False)
+            events[selected] = 1
         
         return events
     
