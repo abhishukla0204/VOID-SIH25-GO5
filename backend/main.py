@@ -39,14 +39,43 @@ from contextlib import asynccontextmanager
 import cv2
 import threading
 import time
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Environment Variables Configuration
+PORT = int(os.getenv("PORT", 8000))
+HOST = os.getenv("HOST", "0.0.0.0")
+RELOAD = os.getenv("RELOAD", "true").lower() == "true"
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEBUG = os.getenv("DEBUG", "true").lower() == "true"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "info").upper()
+
+# API Configuration
+API_TITLE = os.getenv("API_TITLE", "Rockfall Detection API")
+API_DESCRIPTION = os.getenv("API_DESCRIPTION", "Advanced AI-powered rockfall detection and prediction system")
+API_VERSION = os.getenv("API_VERSION", "1.0.0")
+
+# CORS Configuration
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000").split(",")
+
+# File Paths
+MODELS_DIR = os.getenv("MODELS_DIR", "outputs/models")
+DATA_DIR = os.getenv("DATA_DIR", "data")
+STATIC_DIR = os.getenv("STATIC_DIR", "frontend/dist")
+
+# ML Model Settings
+CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.5"))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "32"))
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 sys.path.append(str(project_root / "src"))
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with environment variable
+logging.basicConfig(level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 # Import ML models and utilities (with error handling)
@@ -81,7 +110,7 @@ def load_models_from_outputs():
     import joblib
     import torch
     
-    models_dir = project_root / "outputs" / "models"
+    models_dir = project_root / MODELS_DIR
     models = {}
     
     try:
@@ -498,9 +527,9 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 app = FastAPI(
-    title="Rockfall Detection API",
-    description="Advanced AI-powered rockfall detection and prediction system",
-    version="1.0.0",
+    title=API_TITLE,
+    description=API_DESCRIPTION,
+    version=API_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -509,14 +538,14 @@ app = FastAPI(
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Serve static files
-static_dir = project_root / "frontend" / "dist"
+static_dir = project_root / STATIC_DIR
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
@@ -1379,8 +1408,8 @@ async def simulate_environmental_data():
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
+        host=HOST,
+        port=PORT,
+        reload=RELOAD,
+        log_level=LOG_LEVEL.lower()
     )
