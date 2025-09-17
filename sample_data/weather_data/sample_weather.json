@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-09-16T19:05:35.640906",
+  "temperature": 15.5,
+  "humidity": 72.3,
+  "pressure": 1013.2,
+  "wind_speed": 5.2,
+  "precipitation": 0.0,
+  "weather_condition": "partly_cloudy"
+}

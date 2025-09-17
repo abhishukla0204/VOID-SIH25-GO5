@@ -1,0 +1,306 @@
+# Rockfall Detection System - .gitignore
+# ===========================================
+# This file ensures dependencies and generated files are excluded from Git
+# while keeping all project source code, models, and essential data
+
+# ===========================
+# Dependencies & Environments
+# ===========================
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env/
+env.bak/
+venv.bak/
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+
+# Python package directories
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===========================
+# Cache & Temporary Files
+# ===========================
+
+# General cache
+.cache/
+*.tmp
+*.temp
+temp/
+tmp/
+scratch/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# Node.js cache
+.npm
+.eslintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.parcel-cache
+
+# Frontend build cache
+.nuxt
+.next
+out
+.cache/
+public
+
+# ===========================
+# IDE & Editor Files
+# ===========================
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Other editors
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+.spyderproject
+.spyproject
+.ropeproject
+
+# ===========================
+# Operating System Files
+# ===========================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===========================
+# Logs & Runtime Files
+# ===========================
+
+# Log files
+*.log
+logs/*.log
+!logs/.gitkeep
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ===========================
+# Environment & Secrets
+# ===========================
+
+# Environment files with secrets
+.env
+.env.local
+.env.production
+.env.test
+config/secrets.yaml
+config/api_keys.json
+credentials.json
+
+# ===========================
+# Test Coverage & Reports
+# ===========================
+
+# Coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+cover/
+.nyc_output
+
+# ===========================
+# Documentation Build
+# ===========================
+
+# Sphinx documentation
+docs/_build/
+/site
+
+# ===========================
+# Build Outputs (exclude these)
+# ===========================
+
+# Frontend build outputs
+dist/
+build/
+
+# ===========================
+# Backup Files
+# ===========================
+
+*.bak
+*.backup
+*.old
+
+# ===========================
+# IMPORTANT: Include Project Files
+# ===========================
+# Everything below this line is INCLUDED in Git
+
+# Keep ALL source code
+!src/
+!src/**/*
+
+# Keep ALL project configuration
+!*.py
+!*.js
+!*.jsx
+!*.ts
+!*.tsx
+!*.html
+!*.css
+!*.scss
+!*.json
+!*.yaml
+!*.yml
+!*.md
+!*.txt
+
+# Keep frontend source
+!frontend/src/
+!frontend/src/**/*
+!frontend/public/
+!frontend/public/**/*
+!frontend/*.js
+!frontend/*.json
+!frontend/*.html
+
+# Keep backend source
+!backend/
+!backend/**/*
+
+# Keep ALL data files and folders
+!data/
+!data/**/*
+
+# Keep ALL model outputs and experiments
+!outputs/
+!outputs/**/*
+
+# Keep sample data
+!sample_data/
+!sample_data/**/*
+
+# Keep important project files
+!requirements.txt
+!package.json
+!README.md
+!LICENSE
+!*.md
+!main.py
+!demo.py
+!validate_system.py
+!test_*.py
+
+# Keep model files specifically
+!*.pt
+!*.pth
+!*.pkl
+!*.joblib
+!*.h5
+!*.hdf5
+!*.onnx
+
+# Keep media files
+!*.jpg
+!*.jpeg
+!*.png
+!*.gif
+!*.bmp
+!*.tiff
+!*.tif
+!*.mp4
+!*.avi
+!*.mov
+!*.mkv
+!*.webm

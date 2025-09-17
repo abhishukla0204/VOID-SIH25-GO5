@@ -1,0 +1,68 @@
+{
+  "analysis_timestamp": "2025-09-16T18:58:50.096982",
+  "dem_file": "data\\DEM\\Bingham_Canyon_Mine.tif",
+  "dem_metadata": {
+    "width": 258,
+    "height": 251,
+    "count": 1,
+    "dtype": "float32",
+    "crs": "EPSG:4326",
+    "nodata": -3.4028230607370965e+38
+  },
+  "terrain_statistics": {
+    "elevation_mean": 2039.871826171875,
+    "elevation_range": 1271.7196044921875,
+    "slope_mean": 83.03953552246094,
+    "slope_max": 89.94054412841797,
+    "slope_std": 19.162094116210938
+  },
+  "risk_distribution": {
+    "total_area_pixels": 64758,
+    "high_risk": {
+      "pixels": 57735,
+      "percentage": 89.15500787547485
+    },
+    "medium_risk": {
+      "pixels": 3980,
+      "percentage": 6.145958800457087
+    },
+    "low_risk": {
+      "pixels": 1593,
+      "percentage": 2.4599277309367182
+    },
+    "safe": {
+      "pixels": 1450,
+      "percentage": 2.2391055931313506
+    }
+  },
+  "critical_zones": [
+    {
+      "zone_id": 1,
+      "area_pixels": "57560",
+      "bounding_box": {
+        "min_row": 0,
+        "max_row": 250,
+        "min_col": 0,
+        "max_col": 257
+      },
+      "statistics": {
+        "mean_slope": 87.8388671875,
+        "max_slope": 89.94054412841797,
+        "mean_elevation": 2036.8759765625,
+        "elevation_range": 1271.7196044921875
+      },
+      "risk_level": "HIGH",
+      "priority": "IMMEDIATE"
+    }
+  ],
+  "recommendations": [
+    "URGENT: Over 20% of area classified as high risk - immediate assessment required",
+    "CRITICAL: 1 large high-risk zones require immediate monitoring",
+    "EXTREME SLOPES: Areas with >60\u00b0 slopes present extreme rockfall risk",
+    "Install monitoring equipment in identified critical zones",
+    "Implement regular visual inspections of high-risk areas",
+    "Consider protective measures (barriers, netting) for critical infrastructure",
+    "Develop evacuation procedures for high-risk zones",
+    "Monitor weather conditions that may trigger rockfall events"
+  ]
+}
