@@ -47,7 +47,8 @@ load_dotenv()
 # Environment Variables Configuration
 PORT = int(os.getenv("PORT", 8000))
 HOST = os.getenv("HOST", "0.0.0.0")
-RELOAD = os.getenv("RELOAD", "true").lower() == "true"
+## RELOAD = os.getenv("RELOAD", "true").lower() == "true"
+RELOAD = os.getenv("RELOAD", "false").lower() == "true"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info").upper()
@@ -263,11 +264,11 @@ manager = ConnectionManager()
 # Video streaming manager for camera feeds
 class VideoStreamManager:
     def __init__(self):
-        # Map video files to camera directions (paths relative to project root)
+        # Map video files to camera directions (using Cloudinary URLs)
         self.camera_videos = {
-            "east": "../data/camera_data/1.mp4",
-            "west": "../data/camera_data/2.mp4", 
-            "north": "../data/camera_data/3.mp4",
+            "east": "https://res.cloudinary.com/dyb6aumhm/video/upload/v1758167914/1_znxt5x.mp4",
+            "west": "https://res.cloudinary.com/dyb6aumhm/video/upload/v1758167915/2_lrgtxq.mp4", 
+            "north": "https://res.cloudinary.com/dyb6aumhm/video/upload/v1758167915/3_gk37sc.mp4",
             "south": None  # Maintenance
         }
         
@@ -283,9 +284,18 @@ class VideoStreamManager:
     def _initialize_videos(self):
         """Initialize video capture objects and get metadata"""
         for direction, video_path in self.camera_videos.items():
-            if video_path and os.path.exists(video_path):
-                cap = cv2.VideoCapture(video_path)
-                if cap.isOpened():
+            if video_path:
+                # Handle both local files and HTTP URLs
+                if video_path.startswith('http'):
+                    # For HTTP URLs, try to open directly with cv2
+                    cap = cv2.VideoCapture(video_path)
+                elif os.path.exists(video_path):
+                    # For local files, check existence first
+                    cap = cv2.VideoCapture(video_path)
+                else:
+                    cap = None
+                
+                if cap and cap.isOpened():
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
                     duration = frame_count / fps if fps > 0 else 0
@@ -304,6 +314,13 @@ class VideoStreamManager:
                     logger.info(f"Initialized camera {direction}: {duration:.1f}s, {fps:.1f}fps, {width}x{height}")
                 else:
                     logger.error(f"Failed to open video for camera {direction}: {video_path}")
+                    self.video_info[direction] = {
+                        "fps": 0,
+                        "frame_count": 0,
+                        "duration": 0,
+                        "resolution": "N/A",
+                        "status": "offline"
+                    }
             else:
                 self.video_info[direction] = {
                     "fps": 0,
