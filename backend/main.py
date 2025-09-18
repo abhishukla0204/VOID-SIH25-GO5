@@ -19,7 +19,7 @@ Features:
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+# Removed StaticFiles import - serving frontend separately
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
@@ -58,13 +58,13 @@ API_TITLE = os.getenv("API_TITLE", "Rockfall Detection API")
 API_DESCRIPTION = os.getenv("API_DESCRIPTION", "Advanced AI-powered rockfall detection and prediction system")
 API_VERSION = os.getenv("API_VERSION", "1.0.0")
 
-# CORS Configuration
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,https://void-sih-25-go-5.vercel.app").split(",")
+# CORS Configuration - Production only (frontend deployed separately)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "https://void-sih-25-go-5.vercel.app").split(",")
 
 # File Paths
 MODELS_DIR = os.getenv("MODELS_DIR", "outputs/models")
 DATA_DIR = os.getenv("DATA_DIR", "data")
-STATIC_DIR = os.getenv("STATIC_DIR", "frontend/dist")
+# STATIC_DIR removed for separate deployment
 
 # ML Model Settings
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.5"))
@@ -561,10 +561,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files
-static_dir = project_root / STATIC_DIR
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+# Static file serving removed for separate deployment
+# Frontend will be deployed separately
 
 @app.get("/", response_class=JSONResponse)
 async def root():

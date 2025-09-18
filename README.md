@@ -48,10 +48,28 @@
 
 ## 🏗️ Project Architecture
 
-### 📂 **Project Structure**
+### � **Deployment Strategy: Separate Services**
+- **Frontend**: Deployed on Vercel (`https://void-sih-25-go-5.vercel.app`)
+- **Backend**: Deployed on Render (`https://void-sih25-go5.onrender.com`)
+- **Architecture**: Microservices approach with independent scaling
+
+### �📂 **Project Structure**
 ```
 rockfall_detection/
-├── 📁 frontend/               # React Web Application (Port: 3000)
+├── 📁 backend/                # FastAPI API Server (Deployed to Render)
+│   ├── 🚀 main.py                 # FastAPI application with ML integration
+│   │   ├── Camera APIs                # /api/camera/* endpoints
+│   │   ├── DEM Processing            # /api/dem/analyze/* endpoints
+│   │   ├── Rock Detection           # /api/detect-rocks endpoint
+│   │   ├── Risk Assessment         # /api/predict-risk endpoint
+│   │   └── WebSocket Support       # Real-time data streaming
+│   ├── 📦 requirements.txt        # Python dependencies (FastAPI, ML libs)
+│   ├── ⚙️ .env                   # Backend environment variables
+│   └── 📁 data/                  # Backend-specific data files
+│       ├── 🗻 DEM/                # Digital Elevation Models
+│       └── 🎯 rockfall_training_data/  # YOLOv8 training dataset
+│
+├── 📁 frontend/               # React Web Application (Deployed to Vercel)
 │   ├── 📱 src/                    # React source code
 │   │   ├── pages/                     # Page components
 │   │   │   ├── Dashboard.jsx              # Main monitoring dashboard
@@ -64,17 +82,14 @@ rockfall_detection/
 │   │   │   └── useWebSocket.js            # WebSocket connection hook
 │   │   └── App.jsx                    # Main application component
 │   ├── 📦 package.json            # Node.js dependencies (React 18, Material-UI)
-│   └── ⚡ vite.config.js         # Vite build configuration
+│   ├── ⚡ vite.config.js         # Vite build configuration
+│   ├── ⚙️ .env                   # Frontend environment variables
+│   └── � dist/                  # Built production files (created by npm run build)
+│       ├── index.html                 # Production HTML
+│       ├── assets/                    # Bundled CSS & JS
+│       └── *.svg, *.jpg              # Static assets
 │
-├── 📁 backend/                # FastAPI Web Server (Port: 8000)
-│   └── 🚀 main.py                 # FastAPI application with ML integration
-│       ├── Camera APIs                # /api/camera/* endpoints
-│       ├── DEM Processing            # /api/dem/analyze/* endpoints
-│       ├── Rock Detection           # /api/detect-rocks endpoint
-│       ├── Risk Assessment         # /api/predict-risk endpoint
-│       └── WebSocket Support       # Real-time data streaming
-│
-├── 📁 src/                    # Core ML & Analysis Modules
+├── 📁 src/                    # Core ML & Analysis Modules (Shared)
 │   ├── 🧠 prediction/         # ML prediction models
 │   │   ├── ml_models.py           # XGBoost, RF, NN models
 │   │   ├── train_models.py        # Model training script
@@ -96,11 +111,16 @@ rockfall_detection/
 │   │
 │   └── 🏋️ training/          # Model training utilities
 │
-├── 📁 data/                   # Training & input data
+├── 📁 data/                   # Training & input data (Development)
 │   ├── 🗻 DEM/                # Digital Elevation Models
 │   │   ├── Bingham_Canyon_Mine.tif    # Utah copper mine DEM
 │   │   ├── Chuquicamata_copper_Mine.tif # Chile copper mine DEM
 │   │   └── Grasberg_Mine_Indonesia.tif # Indonesia gold mine DEM
+│   │
+│   ├── 📹 camera_data/        # Video files for camera simulation
+│   │   ├── 1.mp4                  # East camera feed
+│   │   ├── 2.mp4                  # West camera feed
+│   │   └── 3.mp4                  # North camera feed
 │   │
 │   └── 🎯 rockfall_training_data/  # YOLOv8 training dataset
 │       ├── train/images/          # Training images (905 samples)
@@ -124,8 +144,11 @@ rockfall_detection/
 │   │   ├── confusion_matrix.png      # Model evaluation
 │   │   └── val_batch*_pred.jpg       # Validation predictions
 │   │
-│   ├── 📊 alerts/             # Alert logs & notifications
-│   ├── 📈 logs/              # System operation logs
+│   ├── 📊 dem_visualizations/ # DEM analysis outputs
+│   │   ├── *_elevation_map.png       # Terrain visualizations
+│   │   └── risk_assessment_*.png     # Risk analysis charts
+│   │
+│   ├── 📈 *.csv              # Generated data files
 │   └── 📋 *.json             # Analysis reports & results
 │
 ├── 📁 sample_data/           # Test data for development
@@ -136,7 +159,15 @@ rockfall_detection/
 ├── 🧪 demo.py               # System demonstration script
 ├── ✅ validate_system.py    # System validation & testing
 ├── 📋 requirements.txt      # Python dependencies (includes rasterio, matplotlib)
+├── 🎯 yolov8n.pt           # Pre-trained YOLOv8 model
 └── 📚 SYSTEM_DOCUMENTATION.md  # Detailed technical docs
+```
+
+### 🌐 **Service Communication**
+```
+Frontend (Vercel)     →     Backend (Render)
+└─ API Calls               ├─ REST API (/api/*)
+└─ WebSocket               └─ WebSocket (/ws)
 ```
 │   │   ├── confusion_matrix.png      # Model evaluation
 │   │   └── val_batch*_pred.jpg       # Validation predictions
@@ -266,7 +297,47 @@ npm run dev
 - **⚖️ Risk Assessment**: http://localhost:3000/risk-assessment - Environmental inputs
 - **🔧 API Docs**: http://localhost:8000/docs - Interactive API documentation
 
-### 🎯 **Usage Examples**
+### � **Production Deployment**
+
+The system is designed for **separate deployment** of frontend and backend services:
+
+#### **🚀 Backend Deployment (Render)**
+1. **Deploy Only Backend Folder**
+   ```bash
+   # Deploy contents of /backend folder to Render
+   # Render will automatically detect Python app and install requirements.txt
+   ```
+
+2. **Environment Variables on Render**
+   ```bash
+   ALLOWED_ORIGINS=https://void-sih-25-go-5.vercel.app
+   HOST=0.0.0.0
+   PORT=8000
+   ```
+
+3. **Backend URL**: `https://void-sih25-go5.onrender.com`
+
+#### **🌟 Frontend Deployment (Vercel)**
+1. **Deploy Frontend Folder**
+   ```bash
+   # Deploy contents of /frontend folder to Vercel
+   # Vercel will automatically detect Vite app and run npm run build
+   ```
+
+2. **Environment Variables on Vercel**
+   ```bash
+   VITE_API_BASE_URL=https://void-sih25-go5.onrender.com
+   VITE_WS_BASE_URL=wss://void-sih25-go5.onrender.com
+   ```
+
+3. **Frontend URL**: `https://void-sih-25-go-5.vercel.app`
+
+#### **🔗 Service Communication**
+- Frontend (Vercel) → Backend (Render) via REST API and WebSocket
+- CORS configured to allow cross-origin requests
+- Independent scaling and deployment
+
+### �🎯 **Usage Examples**
 
 #### **1. Live Camera Monitoring**
 - Navigate to Live Monitoring page
