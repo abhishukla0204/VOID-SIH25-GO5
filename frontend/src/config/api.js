@@ -1,6 +1,5 @@
 // Simplified API Configuration - Deployed Backend Only
-// No fallback logic, production    if (config.ENABLE_DEBUG_MODE || endpoint.includes('/dem')) {
-      console.log(`📡 Response status: ${response.status} ${response.statusText}`)
+// No fallback logic, production deployment only
 
 // Static configuration from environment variables
 const config = {
