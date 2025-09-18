@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="rockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Mountain Background -->
+  <polygon points="20,80 50,20 80,80" fill="url(#mountainGradient)" stroke="#1e40af" stroke-width="2"/>
+  
+  <!-- Detection Zone -->
+  <circle cx="50" cy="45" r="15" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3,3" opacity="0.8"/>
+  
+  <!-- Falling Rocks -->
+  <circle cx="45" cy="35" r="3" fill="url(#rockGradient)"/>
+  <circle cx="55" cy="40" r="2.5" fill="url(#rockGradient)"/>
+  <circle cx="50" cy="50" r="2" fill="url(#rockGradient)"/>
+  
+  <!-- Motion Lines -->
+  <line x1="43" y1="32" x2="41" y2="28" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="53" y1="37" x2="51" y2="33" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="48" y1="47" x2="46" y2="43" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  
+  <!-- AI Detection Symbol -->
+  <rect x="75" y="15" width="12" height="8" rx="2" fill="#10b981" opacity="0.9"/>
+  <circle cx="81" cy="19" r="1.5" fill="#ffffff"/>
+  <text x="89" y="21" font-family="Arial, sans-serif" font-size="6" fill="#10b981" font-weight="bold">AI</text>
+</svg>

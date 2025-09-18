@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { apiRequest } from '../config/api'
 import {
   Box,
   Card,
@@ -44,7 +45,6 @@ import {
   Error as ErrorIcon
 } from '@mui/icons-material'
 import { motion } from 'framer-motion'
-import axios from 'axios'
 
 const Settings = () => {
   const [settings, setSettings] = useState({
@@ -104,9 +104,9 @@ const Settings = () => {
   
   const loadSettings = async () => {
     try {
-      // In a real app, this would fetch from the backend
-      // const response = await axios.get('http://localhost:8000/api/settings')
-      // setSettings(response.data)
+      // In a real app, this would fetch from the backend using apiRequest
+      // const response = await apiRequest('/api/settings')
+      // setSettings(response)
     } catch (error) {
       console.error('Failed to load settings:', error)
     }
@@ -114,10 +114,10 @@ const Settings = () => {
   
   const loadSystemInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/status')
+      const data = await apiRequest('/api/status')
       setSystemInfo(prev => ({
         ...prev,
-        model_status: response.data.models_loaded,
+        model_status: data.models_loaded,
         memory_usage: Math.random() * 100, // Mock data
         storage_usage: Math.random() * 100
       }))
@@ -139,8 +139,8 @@ const Settings = () => {
   const saveSettings = async () => {
     setLoading(true)
     try {
-      // In a real app, this would save to the backend
-      // await axios.post('http://localhost:8000/api/settings', settings)
+      // In a real app, this would save to the backend using apiRequest
+      // await apiRequest('/api/settings', { method: 'POST', body: JSON.stringify(settings) })
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))

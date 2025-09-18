@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { getApiUrl, apiRequest } from '../config/api'
 import {
   Grid,
   Card,
@@ -41,7 +42,7 @@ const LiveMonitoring = () => {
       id: 'camera-east',
       name: 'East Camera',
       status: 'active',
-      url: '/api/camera/east/stream',
+      url: '',  // Will be resolved async
       lastUpdate: new Date(),
       resolution: '1920x1080',
       fps: 30,
@@ -52,7 +53,7 @@ const LiveMonitoring = () => {
       id: 'camera-west',
       name: 'West Camera',
       status: 'active',
-      url: '/api/camera/west/stream',
+      url: '',  // Will be resolved async
       lastUpdate: new Date(),
       resolution: '1920x1080',
       fps: 30,
@@ -63,7 +64,7 @@ const LiveMonitoring = () => {
       id: 'camera-north',
       name: 'North Camera',
       status: 'active',
-      url: '/api/camera/north/stream',
+      url: '',  // Will be resolved async
       lastUpdate: new Date(),
       resolution: '1920x1080',
       fps: 30,
@@ -74,7 +75,7 @@ const LiveMonitoring = () => {
       id: 'camera-south',
       name: 'South Camera',
       status: 'maintenance',
-      url: '/api/camera/south/stream',
+      url: '',  // Will be resolved async
       lastUpdate: new Date(Date.now() - 300000), // 5 minutes ago
       resolution: '1920x1080',
       fps: 0,
@@ -82,6 +83,31 @@ const LiveMonitoring = () => {
       recording: false
     }
   })
+
+  // Resolve camera URLs on component mount
+  useEffect(() => {
+    const resolveCameraUrls = async () => {
+      try {
+        const urls = [
+          getApiUrl('/api/camera/east/stream'),
+          getApiUrl('/api/camera/west/stream'),
+          getApiUrl('/api/camera/north/stream'),
+          getApiUrl('/api/camera/south/stream')
+        ]
+        
+        setCameraFeeds(prev => ({
+          east: { ...prev.east, url: urls[0] },
+          west: { ...prev.west, url: urls[1] },
+          north: { ...prev.north, url: urls[2] },
+          south: { ...prev.south, url: urls[3] }
+        }))
+      } catch (error) {
+        console.error('Failed to resolve camera URLs:', error)
+      }
+    }
+    
+    resolveCameraUrls()
+  }, [])
 
   const [selectedCamera, setSelectedCamera] = useState(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
@@ -102,13 +128,15 @@ const LiveMonitoring = () => {
 
     const fetchCameraStatus = async () => {
       try {
-        const response = await fetch('/api/camera/status')
-        const data = await response.json()
+        const data = await apiRequest('/api/camera/status')
         
         // Update camera feeds with real data from backend
+        const directions = Object.keys(data.cameras)
+        const feedUrls = directions.map(direction => getApiUrl(`/api/camera/${direction}/feed`))
+        
         setCameraFeeds(prev => {
           const updated = { ...prev }
-          Object.keys(data.cameras).forEach(direction => {
+          directions.forEach((direction, index) => {
             if (updated[direction]) {
               const camera = data.cameras[direction]
               updated[direction] = {
@@ -123,7 +151,7 @@ const LiveMonitoring = () => {
                 duration: camera.duration || 0,
                 detections: updated[direction].detections, // Keep existing detection count for UI
                 lastUpdate: new Date(camera.last_detection || new Date()),
-                url: `/api/camera/${direction}/feed`
+                url: feedUrls[index]
               }
             }
           })
@@ -171,7 +199,7 @@ const LiveMonitoring = () => {
 
   const handleCameraControl = async (direction, action) => {
     try {
-      const response = await fetch(`/api/camera/${direction}/control`, {
+      const result = await apiRequest(`/api/camera/${direction}/control`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -179,11 +207,8 @@ const LiveMonitoring = () => {
         body: JSON.stringify({ action })
       })
       
-      if (response.ok) {
-        const result = await response.json()
-        console.log(`Camera ${direction}: ${action} - ${result.message}`)
-        // Optionally show a success notification
-      }
+      console.log(`Camera ${direction}: ${action} - ${result.message}`)
+      // Optionally show a success notification
     } catch (error) {
       console.error(`Camera control failed:`, error)
     }
@@ -282,7 +307,7 @@ const LiveMonitoring = () => {
             <>
               {/* Real video feed */}
               <img
-                src={`http://localhost:8000/api/camera/${direction}/feed`}
+                src={camera.url}
                 alt={`${direction} camera feed`}
                 style={{
                   width: '100%',
@@ -614,7 +639,7 @@ const LiveMonitoring = () => {
                     }}
                   >
                     <img
-                      src={`http://localhost:8000/api/camera/${fullscreenCamera}/feed`}
+                      src={cameraFeeds[fullscreenCamera]?.url || ''}
                       alt={`${fullscreenCamera} camera fullscreen feed`}
                       style={{
                         width: '100%',

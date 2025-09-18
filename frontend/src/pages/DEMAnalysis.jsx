@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { apiRequest } from '../config/api'
 import {
   Grid,
   Card,
@@ -84,12 +85,7 @@ const DEMAnalysis = () => {
     setImageLoaded(false)
     
     try {
-      const response = await fetch(`/api/dem/analyze/${selectedDEM}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch DEM data')
-      }
-      
-      const data = await response.json()
+      const data = await apiRequest(`/api/dem/analyze/${selectedDEM}`)
       setDemData(data)
     } catch (err) {
       setError(err.message)

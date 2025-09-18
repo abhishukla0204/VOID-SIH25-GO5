@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiRequest } from '../config/api'
 import {
   Box,
   Card,
@@ -35,7 +36,6 @@ import {
   Error as ErrorIcon
 } from '@mui/icons-material'
 import { motion } from 'framer-motion'
-import axios from 'axios'
 
 const RiskAssessment = () => {
   const [formData, setFormData] = useState({
@@ -77,17 +77,14 @@ const RiskAssessment = () => {
     setError(null)
     
     try {
-      const response = await axios.post(
-        'http://localhost:8000/api/predict-risk',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+      const results = await apiRequest('/api/predict-risk', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json'
         }
-      )
+      })
       
-      const results = response.data
       setRiskResults(results)
       
       // Add to history

@@ -1,0 +1,57 @@
+{
+  "success": true,
+  "detections": [
+    {
+      "id": 1,
+      "class": "rockfall",
+      "confidence": 0.89,
+      "bbox": {
+        "x": 245,
+        "y": 120,
+        "width": 85,
+        "height": 95
+      },
+      "risk_level": "high"
+    },
+    {
+      "id": 2,
+      "class": "loose_rock",
+      "confidence": 0.76,
+      "bbox": {
+        "x": 180,
+        "y": 200,
+        "width": 45,
+        "height": 50
+      },
+      "risk_level": "medium"
+    },
+    {
+      "id": 3,
+      "class": "unstable_slope",
+      "confidence": 0.92,
+      "bbox": {
+        "x": 320,
+        "y": 80,
+        "width": 120,
+        "height": 160
+      },
+      "risk_level": "high"
+    }
+  ],
+  "image_info": {
+    "width": 640,
+    "height": 480,
+    "timestamp": "2025-09-18T10:30:00Z",
+    "camera": "demo",
+    "location": "Demo Site"
+  },
+  "processing_time": 0.234,
+  "model_version": "yolov8n-rockfall-v1.0",
+  "total_detections": 3,
+  "risk_summary": {
+    "high_risk": 2,
+    "medium_risk": 1,
+    "low_risk": 0,
+    "overall_risk": "high"
+  }
+}

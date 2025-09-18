@@ -15,7 +15,7 @@ import {
   PlayArrow as PlayIcon
 } from '@mui/icons-material'
 import { motion } from 'framer-motion'
-import axios from 'axios'
+import { apiRequest, getApiUrl } from '../config/api'
 
 const Detection = () => {
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -52,32 +52,26 @@ const Detection = () => {
     try {
       // Try to load default test image from backend
       console.log('📸 Fetching test image from /api/test-image')
-      const imageResponse = await fetch('/api/test-image')
+      const imageUrl = getApiUrl('/api/test-image')
+      const imageResponse = await fetch(imageUrl)
       console.log('📸 Image response status:', imageResponse.status)
       
       if (imageResponse.ok) {
         const imageBlob = await imageResponse.blob()
-        const imageUrl = URL.createObjectURL(imageBlob)
-        console.log('📸 Test image loaded successfully:', imageUrl)
+        const imageObjectUrl = URL.createObjectURL(imageBlob)
+        console.log('📸 Test image loaded successfully:', imageObjectUrl)
         
         // Get detection results for the test image
         console.log('🎯 Fetching detection results from /api/test-image/detect')
-        const detectionResponse = await fetch('/api/test-image/detect?confidence_threshold=0.5')
-        console.log('🎯 Detection response status:', detectionResponse.status)
-        
-        if (detectionResponse.ok) {
-          const detectionResults = await detectionResponse.json()
-          console.log('🎯 Detection results:', detectionResults)
+        const detectionResults = await apiRequest('/api/test-image/detect?confidence_threshold=0.5')
+        console.log('🎯 Detection results:', detectionResults)
           setShowDemo(true)
-          setPreviewUrl(imageUrl)
-          setDetectionResults(detectionResults)
-          console.log('✅ Demo detection loaded successfully!')
-          return
-        } else {
-          console.error('❌ Detection API failed:', await detectionResponse.text())
-        }
+        setDetectionResults(detectionResults)
+        setPreviewUrl(imageObjectUrl)
+        console.log('✅ Demo detection loaded successfully!')
+        return
       } else {
-        console.error('❌ Image API failed:', await imageResponse.text())
+        console.error('❌ Image API failed:', imageResponse.statusText)
       }
       
       // Fallback to old demo if new endpoints aren't available

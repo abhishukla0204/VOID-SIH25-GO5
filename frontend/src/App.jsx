@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import config, { apiRequest, getCurrentBackendInfo } from './config/api'
 import { 
   AppBar, 
   Toolbar, 
@@ -60,7 +61,7 @@ function App() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   
   // WebSocket connection for real-time updates
-  const { connectionStatus, lastMessage } = useWebSocket('ws://localhost:8000/ws')
+  const { connectionStatus, lastMessage, currentUrl, reconnect, isConnected } = useWebSocket('/ws')
   
   // Handle drawer toggle
   const handleDrawerToggle = () => {
@@ -111,12 +112,13 @@ function App() {
   useEffect(() => {
     const fetchSystemStatus = async () => {
       try {
-        const response = await fetch('/api/status')
-        const data = await response.json()
+        const data = await apiRequest('/api/status')
+        console.log('🔄 System status received:', data)
+        console.log('📊 Models loaded:', data.models_loaded)
         setSystemStatus(data)
       } catch (error) {
         console.error('Failed to fetch system status:', error)
-        toast.error('Failed to connect to backend')
+        // Don't show toast error for status checks as they happen frequently
       }
     }
     
