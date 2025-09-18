@@ -552,20 +552,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware for React frontend
+# Add CORS middleware FIRST - before any routes or mounts
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Add a catch-all OPTIONS handler for CORS preflight
-@app.options("/{path:path}")
-async def options_handler(path: str):
-    """Handle all OPTIONS requests for CORS preflight"""
-    return {"message": "OK"}
 
 # Serve static files
 static_dir = project_root / STATIC_DIR
