@@ -6,6 +6,7 @@ const config = {
   // Backend URLs (deployed production backend)
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://void-sih25-go5.onrender.com',
   WS_BASE_URL: import.meta.env.VITE_WS_BASE_URL || 'wss://void-sih25-go5.onrender.com',
+  SSE_BASE_URL: import.meta.env.VITE_SSE_BASE_URL || 'https://void-sih25-go5.onrender.com',
   
   // Application Settings
   APP_TITLE: import.meta.env.VITE_APP_TITLE || 'Rockfall Detection System',
@@ -46,6 +47,11 @@ export const getApiUrl = (endpoint) => {
 
 export const getWsUrl = (endpoint) => {
   const baseUrl = config.WS_BASE_URL
+  return `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`
+}
+
+export const getSseUrl = (endpoint) => {
+  const baseUrl = config.SSE_BASE_URL
   return `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`
 }
 

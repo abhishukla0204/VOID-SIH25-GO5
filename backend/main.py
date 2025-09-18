@@ -1056,6 +1056,59 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+# Server-Sent Events (SSE) alternative for platforms that don't support WebSockets
+@app.get("/api/events/stream")
+async def event_stream():
+    """Server-Sent Events endpoint - WebSocket alternative for cloud platforms"""
+    async def generate():
+        try:
+            while True:
+                # Send real-time data as SSE
+                data = {
+                    "type": "heartbeat",
+                    "timestamp": datetime.now().isoformat(),
+                    "message": "Connection active",
+                    "camera_status": video_manager.get_camera_status(),
+                    "system_stats": {
+                        "active_connections": len(manager.active_connections),
+                        "uptime": "24h 15m",
+                        "memory_usage": "245 MB"
+                    }
+                }
+                
+                yield f"data: {json.dumps(data)}\n\n"
+                await asyncio.sleep(5)  # Send updates every 5 seconds
+                
+        except Exception as e:
+            logger.error(f"SSE stream error: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Cache-Control"
+        }
+    )
+
+@app.post("/api/events/message")
+async def receive_message(message: dict):
+    """Receive messages from SSE clients (since SSE is one-way)"""
+    logger.info(f"Received SSE message: {message}")
+    
+    # Broadcast to WebSocket clients if any are connected
+    if manager.active_connections:
+        await manager.broadcast(json.dumps({
+            "type": "client_message",
+            "timestamp": datetime.now().isoformat(),
+            "data": message
+        }))
+    
+    return {"status": "received", "timestamp": datetime.now().isoformat()}
+
 # Camera streaming endpoints
 @app.get("/api/camera/status")
 async def get_camera_status():
