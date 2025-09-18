@@ -557,9 +557,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Add a catch-all OPTIONS handler for CORS preflight
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    """Handle all OPTIONS requests for CORS preflight"""
+    return {"message": "OK"}
 
 # Serve static files
 static_dir = project_root / STATIC_DIR
@@ -582,11 +588,6 @@ async def root():
             "Historical data analysis"
         ]
     }
-
-@app.options("/api/status")
-async def options_status():
-    """Handle OPTIONS request for system status"""
-    return {"message": "OK"}
 
 @app.get("/api/status", response_model=SystemStatus)
 async def get_system_status():
@@ -1064,11 +1065,6 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 # Camera streaming endpoints
-@app.options("/api/camera/status")
-async def options_camera_status():
-    """Handle OPTIONS request for camera status"""
-    return {"message": "OK"}
-
 @app.get("/api/camera/status")
 async def get_camera_status():
     """Get status of all cameras with real video metadata"""
