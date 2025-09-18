@@ -70,10 +70,10 @@ DATA_DIR = os.getenv("DATA_DIR", "data")
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.5"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "32"))
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent
-sys.path.append(str(project_root))
-sys.path.append(str(project_root / "src"))
+# Add backend paths for imports - deployment compatible
+backend_root = Path(__file__).parent  # This is the backend/ directory
+sys.path.append(str(backend_root))
+sys.path.append(str(backend_root / "src"))
 
 # Configure logging with environment variable
 logging.basicConfig(level=getattr(logging, LOG_LEVEL))
@@ -111,7 +111,7 @@ def load_models_from_outputs():
     import joblib
     import torch
     
-    models_dir = project_root / MODELS_DIR
+    models_dir = backend_root / MODELS_DIR
     models = {}
     
     try:
@@ -511,13 +511,13 @@ async def load_models():
         try:
             logger.info("Loading detection model...")
             # First try the experiment folder
-            detection_model_path = project_root / "outputs" / "experiment_20250916_210441" / "weights" / "best.pt"
+            detection_model_path = backend_root / "outputs" / "experiment_20250916_210441" / "weights" / "best.pt"
             if detection_model_path.exists():
                 detection_model = YOLO(str(detection_model_path))
                 logger.info("✅ YOLO detection model loaded from experiment folder")
             else:
                 # Try the models folder
-                alt_path = project_root / "outputs" / "models" / "best.pt"
+                alt_path = backend_root / "outputs" / "models" / "best.pt"
                 if alt_path.exists():
                     detection_model = YOLO(str(alt_path))
                     logger.info("✅ YOLO detection model loaded from models folder")
@@ -864,7 +864,7 @@ async def detect_rocks(file: UploadFile = File(...), confidence_threshold: float
 async def get_test_image():
     """Get a default test image from the training data"""
     try:
-        test_images_dir = project_root / "data" / "rockfall_training_data" / "test" / "images"
+        test_images_dir = backend_root / "data" / "rockfall_training_data" / "test" / "images"
         
         if not test_images_dir.exists():
             raise HTTPException(status_code=404, detail="Test images directory not found")
@@ -894,7 +894,7 @@ async def detect_default_test_image(confidence_threshold: float = 0.5):
     global detection_model
     
     try:
-        test_images_dir = project_root / "data" / "rockfall_training_data" / "test" / "images"
+        test_images_dir = backend_root / "data" / "rockfall_training_data" / "test" / "images"
         
         if not test_images_dir.exists():
             raise HTTPException(status_code=404, detail="Test images directory not found")
@@ -1235,52 +1235,91 @@ async def get_camera_detections(direction: str):
 @app.get("/api/dem/files")
 async def get_dem_files():
     """Get list of available DEM files"""
+    logger.info("📁 DEM files endpoint requested")
+    
+    # Use paths relative to backend folder for deployment compatibility
+    backend_root = Path(__file__).parent  # This is the backend/ directory
+    
     dem_files = [
         {
             "id": "bingham_canyon",
             "name": "Bingham Canyon Mine",
             "location": "Utah, USA",
             "description": "Large open-pit copper mine with significant terrain variations",
-            "file_path": "data/DEM/Bingham_Canyon_Mine.tif"
+            "file_path": str(backend_root / "data" / "DEM" / "Bingham_Canyon_Mine.tif")
         },
         {
             "id": "chuquicamata",
             "name": "Chuquicamata Copper Mine", 
             "location": "Chile",
             "description": "One of the largest open-pit mines in the world",
-            "file_path": "data/DEM/Chuquicamata_copper_Mine.tif"
+            "file_path": str(backend_root / "data" / "DEM" / "Chuquicamata_copper_Mine.tif")
         },
         {
             "id": "grasberg",
             "name": "Grasberg Mine",
             "location": "Papua, Indonesia", 
             "description": "High-altitude mining operation in mountainous terrain",
-            "file_path": "data/DEM/Grasberg_Mine_Indonesia.tif"
+            "file_path": str(backend_root / "data" / "DEM" / "Grasberg_Mine_Indonesia.tif")
         }
     ]
+    
+    # Log file existence check
+    for dem_file in dem_files:
+        file_path = Path(dem_file["file_path"])
+        exists = file_path.exists()
+        logger.info(f"📄 DEM file {dem_file['id']}: {file_path} -> {'✅ EXISTS' if exists else '❌ NOT FOUND'}")
+        if exists:
+            size_mb = file_path.stat().st_size / (1024 * 1024)
+            logger.info(f"   Size: {size_mb:.1f} MB")
+    
+    logger.info(f"📤 Returning {len(dem_files)} DEM files")
     return {"files": dem_files}
 
 @app.get("/api/dem/analyze/{dem_id}")
 async def analyze_dem(dem_id: str):
     """Analyze DEM file and return color-coded visualization with statistics"""
+    logger.info(f"🗺️ DEM analysis requested for: {dem_id}")
+    
     try:
-        # Map DEM IDs to file paths
+        # Map DEM IDs to file paths - DEM files are in backend/data/DEM/
+        # Use paths relative to backend folder for deployment compatibility
+        backend_root = Path(__file__).parent  # This is the backend/ directory
         dem_files = {
-            "bingham_canyon": "data/DEM/Bingham_Canyon_Mine.tif",
-            "chuquicamata": "data/DEM/Chuquicamata_copper_Mine.tif", 
-            "grasberg": "data/DEM/Grasberg_Mine_Indonesia.tif"
+            "bingham_canyon": backend_root / "data" / "DEM" / "Bingham_Canyon_Mine.tif",
+            "chuquicamata": backend_root / "data" / "DEM" / "Chuquicamata_copper_Mine.tif", 
+            "grasberg": backend_root / "data" / "DEM" / "Grasberg_Mine_Indonesia.tif"
         }
         
+        logger.info(f"📋 Available DEM files: {list(dem_files.keys())}")
+        
         if dem_id not in dem_files:
+            logger.error(f"❌ Invalid DEM file ID: {dem_id}")
             raise HTTPException(status_code=400, detail="Invalid DEM file ID")
         
-        file_path = project_root / dem_files[dem_id]
+        file_path = dem_files[dem_id]  # Now using absolute Path objects
+        logger.info(f"📁 Resolved file path: {file_path}")
+        logger.info(f"📁 Absolute file path: {file_path.absolute()}")
+        logger.info(f"📂 Backend root: {backend_root}")
         
         if not file_path.exists():
+            logger.error(f"❌ DEM file not found at: {file_path}")
+            # List what's actually in the directory
+            dem_dir = file_path.parent
+            if dem_dir.exists():
+                logger.info(f"📂 Contents of {dem_dir}:")
+                for item in dem_dir.iterdir():
+                    logger.info(f"   📄 {item.name}")
+            else:
+                logger.error(f"❌ Directory {dem_dir} does not exist")
             raise HTTPException(status_code=404, detail="DEM file not found")
+        
+        logger.info(f"✅ DEM file found, starting analysis...")
         
         # Process DEM file and generate color-coded visualization
         result = await process_dem_file(file_path, dem_id)
+        
+        logger.info(f"✅ DEM analysis completed for {dem_id}")
         
         return {
             "dem_id": dem_id,
@@ -1290,12 +1329,18 @@ async def analyze_dem(dem_id: str):
             "timestamp": datetime.now().isoformat()
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
-        logger.error(f"DEM analysis failed: {str(e)}")
+        logger.error(f"💥 DEM analysis failed for {dem_id}: {str(e)}")
+        logger.exception("Full error traceback:")
         raise HTTPException(status_code=500, detail=f"DEM analysis failed: {str(e)}")
 
 async def process_dem_file(file_path: Path, dem_id: str):
     """Process DEM .tif file and generate color-coded PNG visualization"""
+    logger.info(f"🔬 Processing DEM file: {file_path}")
+    
     try:
         # Try to import required libraries
         try:
@@ -1307,8 +1352,10 @@ async def process_dem_file(file_path: Path, dem_id: str):
             from PIL import Image
             import io
             import base64
+            logger.info("✅ All geospatial libraries imported successfully")
         except ImportError as e:
-            logger.warning(f"Geospatial libraries not available: {e}")
+            logger.warning(f"⚠️ Geospatial libraries not available: {e}")
+            logger.info("🔄 Returning mock data instead")
             # Return mock data when libraries are missing
             return {
                 "image_url": f"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
@@ -1441,7 +1488,7 @@ Terrain: {stats["terrain_type"]}'''
         
         # Also save as file for download (optional)
         try:
-            output_dir = project_root / "outputs" / "dem_visualizations"
+            output_dir = backend_root / "outputs" / "dem_visualizations"
             output_dir.mkdir(parents=True, exist_ok=True)
             
             output_file = output_dir / f"{dem_id}_elevation_map.png"

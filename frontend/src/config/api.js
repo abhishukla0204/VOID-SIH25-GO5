@@ -1,5 +1,6 @@
 // Simplified API Configuration - Deployed Backend Only
-// No fallback logic, production-ready configuration
+// No fallback logic, production    if (config.ENABLE_DEBUG_MODE || endpoint.includes('/dem')) {
+      console.log(`📡 Response status: ${response.status} ${response.statusText}`)
 
 // Static configuration from environment variables
 const config = {
@@ -67,13 +68,16 @@ export const getCurrentBackendInfo = () => {
 
 // Simplified fetch wrapper with proper error handling
 export const apiRequest = async (endpoint, options = {}) => {
-  if (config.ENABLE_DEBUG_MODE) {
+  // Always log DEM requests for debugging
+  const isDEMRequest = endpoint.includes('/dem')
+  
+  if (config.ENABLE_DEBUG_MODE || isDEMRequest) {
     console.log(`🌐 API Request: ${endpoint}`)
   }
   
   const url = getApiUrl(endpoint)
   
-  if (config.ENABLE_DEBUG_MODE) {
+  if (config.ENABLE_DEBUG_MODE || isDEMRequest) {
     console.log(`🔗 Request URL: ${url}`)
   }
   
@@ -97,7 +101,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     
     const data = await response.json()
     
-    if (config.ENABLE_DEBUG_MODE) {
+    if (config.ENABLE_DEBUG_MODE || isDEMRequest) {
       console.log(`✅ API success, data:`, data)
     }
     

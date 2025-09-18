@@ -62,16 +62,16 @@ class RockfallTrainer:
     
     def setup_directories(self):
         """Setup output directories"""
-        self.project_root = Path(__file__).parent.parent.parent
-        self.data_path = self.project_root / "data" / "rockfall_training_data"
-        self.models_dir = self.project_root / "models"
-        self.outputs_dir = self.project_root / "outputs"
+        self.backend_root = Path(__file__).parent.parent.parent  # Points to backend folder
+        self.data_path = self.backend_root / "data" / "rockfall_training_data"
+        self.models_dir = self.backend_root / "models"
+        self.outputs_dir = self.backend_root / "outputs"
         
         # Create directories if they don't exist
         self.models_dir.mkdir(exist_ok=True)
         self.outputs_dir.mkdir(exist_ok=True)
         
-        print(f"Project root: {self.project_root}")
+        print(f"Backend root: {self.backend_root}")
         print(f"Data path: {self.data_path}")
         print(f"Models directory: {self.models_dir}")
     

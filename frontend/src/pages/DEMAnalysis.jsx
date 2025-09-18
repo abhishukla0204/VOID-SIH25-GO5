@@ -74,20 +74,34 @@ const DEMAnalysis = () => {
 
   // Fetch DEM data when selection changes
   useEffect(() => {
+    console.log(`🔍 DEM selection useEffect triggered. selectedDEM: ${selectedDEM}`)
     if (selectedDEM) {
+      console.log(`📥 Triggering fetchDEMData for: ${selectedDEM}`)
       fetchDEMData()
+    } else {
+      console.log(`⏸️ No DEM selected, skipping fetch`)
     }
   }, [selectedDEM])
 
+  // Log component mount
+  useEffect(() => {
+    console.log(`🚀 DEMAnalysis component mounted`)
+    console.log(`📂 Available DEM files:`, demFiles)
+  }, [])
+
   const fetchDEMData = async () => {
+    console.log(`🗺️ Fetching DEM data for: ${selectedDEM}`)
     setLoading(true)
     setError(null)
     setImageLoaded(false)
     
     try {
+      console.log(`📡 Making API request to: /api/dem/analyze/${selectedDEM}`)
       const data = await apiRequest(`/api/dem/analyze/${selectedDEM}`)
+      console.log(`✅ DEM data received:`, data)
       setDemData(data)
     } catch (err) {
+      console.error(`❌ DEM fetch failed for ${selectedDEM}:`, err)
       setError(err.message)
       setDemData(null)
     } finally {
@@ -96,7 +110,9 @@ const DEMAnalysis = () => {
   }
 
   const handleDEMChange = (event) => {
-    setSelectedDEM(event.target.value)
+    const newDEM = event.target.value
+    console.log(`🔄 DEM selection changed from ${selectedDEM} to ${newDEM}`)
+    setSelectedDEM(newDEM)
   }
 
   const handleZoomIn = () => {

@@ -851,9 +851,9 @@ def calculate_risk(payload: Dict[str, Any]) -> Dict[str, Any]:
     from pathlib import Path
     
     try:
-        # Get the project root directory
-        project_root = Path(__file__).parent.parent.parent
-        models_dir = project_root / "outputs" / "models"
+        # Get the backend root directory
+        backend_root = Path(__file__).parent.parent.parent  # Points to backend folder
+        models_dir = backend_root / "outputs" / "models"
         
         # Load models and scaler
         models = {
