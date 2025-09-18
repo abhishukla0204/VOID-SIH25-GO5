@@ -59,7 +59,7 @@ API_DESCRIPTION = os.getenv("API_DESCRIPTION", "Advanced AI-powered rockfall det
 API_VERSION = os.getenv("API_VERSION", "1.0.0")
 
 # CORS Configuration
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,https://void-sih-25-go-5.vercel.app").split(",")
 
 # File Paths
 MODELS_DIR = os.getenv("MODELS_DIR", "outputs/models")
@@ -583,6 +583,11 @@ async def root():
         ]
     }
 
+@app.options("/api/status")
+async def options_status():
+    """Handle OPTIONS request for system status"""
+    return {"message": "OK"}
+
 @app.get("/api/status", response_model=SystemStatus)
 async def get_system_status():
     """Get system status and health"""
@@ -1059,6 +1064,11 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 # Camera streaming endpoints
+@app.options("/api/camera/status")
+async def options_camera_status():
+    """Handle OPTIONS request for camera status"""
+    return {"message": "OK"}
+
 @app.get("/api/camera/status")
 async def get_camera_status():
     """Get status of all cameras with real video metadata"""
